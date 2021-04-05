@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -28,20 +27,25 @@ func init() {
 	// Init search path
 	searchPath = flag.String("search", "", "Absolute path to search assets")
 	flag.Parse()
-	if !path.IsAbs(*searchPath) {
-		logrus.Fatalln("Invalid searchPath")
+	*searchPath = filepath.FromSlash(filepath.Clean(*searchPath))
+	if !filepath.IsAbs(*searchPath) {
+		logrus.Fatalf("Invalid searchPath(%s)\n", *searchPath)
 	}
 }
 
 // parseVideo parse video format. TODO
 func parseVideo(path string) (*VideoFormat, error) {
 
-	path, _ = filepath.Abs(filepath.Clean(path))
+	path = filepath.Clean(path)
 	i, err := mediainfo.New(path)
+	// exit status 3221225477?
 	if err != nil {
 		return nil, err
 	}
 
+	if i.VideoTracks == nil {
+		return nil, fmt.Errorf("Unknown video type")
+	}
 	if len(i.VideoTracks) != 1 {
 		return nil, fmt.Errorf("Unknown video type")
 	}
@@ -60,7 +64,7 @@ func parseImage(ext, path string) (*VideoFormat, error) {
 }
 
 func init() {
-	logrus.SetLevel(logrus.DebugLevel)
+	// logrus.SetLevel(logrus.DebugLevel)
 }
 
 func main() {
@@ -104,6 +108,6 @@ func main() {
 		})
 
 	if err != nil {
-		logrus.Fatalln(err)
+		logrus.Fatalln("Failed on WalkDir:", err)
 	}
 }

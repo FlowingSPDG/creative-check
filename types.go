@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// VideoFormat Video file format
 type VideoFormat struct {
 	Width     int64
 	Height    int64
@@ -11,6 +12,7 @@ type VideoFormat struct {
 	Bitrate   float64
 }
 
+// IsRecommendedHDFormat Check if its recommended HD video format or not
 func (v VideoFormat) IsRecommendedHDFormat() error {
 	if v.Width != 1920 {
 		return fmt.Errorf("Invalid width size(%d)", v.Width)
@@ -24,11 +26,13 @@ func (v VideoFormat) IsRecommendedHDFormat() error {
 	return nil
 }
 
+// ImageFormat Image file format
 type ImageFormat struct {
 	Width  int64
 	Height int64
 }
 
+// IsRecommendedHDFormat Check if its recommended HD video format or not
 func (v ImageFormat) IsRecommendedHDFormat() error {
 	if v.Width != 1920 {
 		return fmt.Errorf("Invalid width size")
