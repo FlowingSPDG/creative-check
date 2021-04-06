@@ -35,10 +35,10 @@ type ImageFormat struct {
 // IsRecommendedHDFormat Check if its recommended HD video format or not
 func (v ImageFormat) IsRecommendedHDFormat() error {
 	if v.Width != 1920 {
-		return fmt.Errorf("Invalid width size")
+		return fmt.Errorf("Invalid width size(%d)", v.Width)
 	}
 	if v.Height != 1080 {
-		return fmt.Errorf("Invalid height size")
+		return fmt.Errorf("Invalid height size(%d)", v.Height)
 	}
 	return nil
 }
