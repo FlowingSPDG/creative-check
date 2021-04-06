@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/cbsinteractive/mediainfo"
 	"github.com/sirupsen/logrus"
@@ -130,6 +131,7 @@ func main() {
 	logrus.Infof("searchPath : %s\n", *searchPath)
 
 	// Locate all assets
+	wg := &sync.WaitGroup{}
 	err := filepath.WalkDir(*searchPath,
 		func(path string, entry fs.DirEntry, err error) error {
 			if entry.IsDir() {
@@ -141,39 +143,47 @@ func main() {
 			}
 			for _, v := range supportedVideos {
 				if v == ext {
-					logrus.Debugf("Process %s as ext %s file...", entry.Name(), ext)
-					f, err := parseVideo(path)
-					if err != nil {
-						logrus.Warnf("Failed to parse %s:%v\n", path, err)
-						continue
-					}
-					if err := f.IsRecommendedHDFormat(); err != nil {
-						logrus.Warnf("File %s is not recommended HD format :%v\n", entry.Name(), err)
-					} else {
-						logrus.Infof("File %s is recommended HD format!\n", entry.Name())
-					}
+					wg.Add(1)
+					go func(path string) {
+						defer wg.Done()
+						logrus.Debugf("Process %s as ext %s file...", entry.Name(), ext)
+						f, err := parseVideo(path)
+						if err != nil {
+							logrus.Warnf("Failed to parse %s:%v\n", path, err)
+							return
+						}
+						if err := f.IsRecommendedHDFormat(); err != nil {
+							logrus.Warnf("File %s is not recommended HD format :%v\n", entry.Name(), err)
+						} else {
+							logrus.Infof("File %s is recommended HD format!\n", entry.Name())
+						}
+					}(path)
 				}
 			}
 
 			for _, v := range supportedImages {
 				if v == ext {
-					logrus.Debugf("Process %s as ext %s file...", entry.Name(), ext)
-					f, err := parseImage(path)
-					if err != nil {
-						logrus.Warnf("Failed to parse %s:%v\n", path, err)
-						continue
-					}
-					if err := f.IsRecommendedHDFormat(); err != nil {
-						logrus.Warnf("File %s is not recommended HD format :%v\n", entry.Name(), err)
-					} else {
-						logrus.Infof("File %s is recommended HD format!\n", entry.Name())
-					}
+					wg.Add(1)
+					go func(path string) {
+						defer wg.Done()
+						logrus.Debugf("Process %s as ext %s file...", entry.Name(), ext)
+						f, err := parseImage(path)
+						if err != nil {
+							logrus.Warnf("Failed to parse %s:%v\n", path, err)
+							return
+						}
+						if err := f.IsRecommendedHDFormat(); err != nil {
+							logrus.Warnf("File %s is not recommended HD format :%v\n", entry.Name(), err)
+						} else {
+							logrus.Infof("File %s is recommended HD format!\n", entry.Name())
+						}
+					}(path)
 				}
 			}
 
 			return nil
 		})
-
+	wg.Wait()
 	if err != nil {
 		logrus.Fatalln("Failed on WalkDir:", err)
 	}
