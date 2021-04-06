@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"image/jpeg"
@@ -196,4 +197,6 @@ func main() {
 	if err != nil {
 		logrus.Fatalln("Failed on WalkDir:", err)
 	}
+	logrus.Infoln("Press enter to continue")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
