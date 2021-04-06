@@ -13,6 +13,7 @@ import (
 
 	"github.com/cbsinteractive/mediainfo"
 	"github.com/sirupsen/logrus"
+	"github.com/sqweek/dialog"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
 )
@@ -33,6 +34,14 @@ func init() {
 	// Init search path
 	searchPath = flag.String("search", "", "Absolute path to search assets")
 	flag.Parse()
+	if *searchPath == "" {
+		directory, err := dialog.Directory().Title("Directory to save assets").Browse()
+		if err != nil {
+			panic(err)
+		}
+		*searchPath = directory
+	}
+
 	*searchPath = filepath.FromSlash(filepath.Clean(*searchPath))
 	if !filepath.IsAbs(*searchPath) {
 		logrus.Fatalf("Invalid searchPath(%s)\n", *searchPath)
