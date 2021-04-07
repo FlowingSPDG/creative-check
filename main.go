@@ -1,22 +1,30 @@
 package main
 
 import (
+	// Standard library
 	"bufio"
 	"flag"
 	"fmt"
-	"image/jpeg"
-	"image/png"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/cbsinteractive/mediainfo"
-	"github.com/sirupsen/logrus"
-	"github.com/sqweek/dialog"
+	// Image
+	"image"
+	"image/jpeg"
+	"image/png"
+
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
+
+	// Video
+	"github.com/cbsinteractive/mediainfo"
+
+	// Others
+	"github.com/sirupsen/logrus"
+	"github.com/sqweek/dialog"
 )
 
 var (
@@ -83,52 +91,41 @@ func parseImage(path string) (*ImageFormat, error) {
 	}
 
 	ext := strings.ToLower(filepath.Ext(path))
+
+	var img image.Image
+	var imgerr error
 	switch ext {
 	case ".jpg", ".jpeg":
-		im, err := jpeg.Decode(f)
-		if err != nil {
+		img, imgerr = jpeg.Decode(f)
+		if imgerr != nil {
 			return nil, err
 		}
-
-		return &ImageFormat{
-			Width:  int64(im.Bounds().Dx()),
-			Height: int64(im.Bounds().Dy()),
-		}, nil
 
 	case ".png":
-		im, err := png.Decode(f)
-		if err != nil {
+		img, imgerr = png.Decode(f)
+		if imgerr != nil {
 			return nil, err
 		}
-
-		return &ImageFormat{
-			Width:  int64(im.Bounds().Dx()),
-			Height: int64(im.Bounds().Dy()),
-		}, nil
 
 	case ".tiff":
-		im, err := tiff.Decode(f)
-		if err != nil {
+		img, imgerr = tiff.Decode(f)
+		if imgerr != nil {
 			return nil, err
 		}
-
-		return &ImageFormat{
-			Width:  int64(im.Bounds().Dx()),
-			Height: int64(im.Bounds().Dy()),
-		}, nil
 
 	case ".bmp":
-		im, err := bmp.Decode(f)
-		if err != nil {
+		img, imgerr = bmp.Decode(f)
+		if imgerr != nil {
 			return nil, err
 		}
-
-		return &ImageFormat{
-			Width:  int64(im.Bounds().Dx()),
-			Height: int64(im.Bounds().Dy()),
-		}, nil
+	default:
+		return nil, fmt.Errorf("Unsupported image format")
 	}
-	return nil, fmt.Errorf("Something went wrong")
+
+	return &ImageFormat{
+		Width:  int64(img.Bounds().Dx()),
+		Height: int64(img.Bounds().Dy()),
+	}, nil
 }
 
 func init() {
