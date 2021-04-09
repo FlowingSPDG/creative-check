@@ -22,7 +22,7 @@ import (
 	// Video
 	"github.com/cbsinteractive/mediainfo"
 
-	// Others
+	// etc
 	"github.com/sirupsen/logrus"
 	"github.com/sqweek/dialog"
 )
@@ -41,10 +41,10 @@ var (
 
 func init() {
 	// Init search path
-	searchPath = flag.String("search", "", "Absolute path to search assets")
+	searchPath = flag.String("search", "", "Absolute path to verify assets")
 	flag.Parse()
 	if *searchPath == "" {
-		directory, err := dialog.Directory().Title("Directory to save assets").Browse()
+		directory, err := dialog.Directory().Title("Directory to verify assets").Browse()
 		if err != nil {
 			panic(err)
 		}
@@ -59,7 +59,6 @@ func init() {
 
 // parseVideo parse video format. TODO
 func parseVideo(path string) (*VideoFormat, error) {
-
 	path = filepath.Clean(path)
 	i, err := mediainfo.New(path)
 	// exit status 3221225477 if mediainfo not installed
@@ -75,10 +74,10 @@ func parseVideo(path string) (*VideoFormat, error) {
 	}
 
 	return &VideoFormat{
-		Width:     int64(i.VideoTracks[0].Width.Val),
-		Height:    int64(i.VideoTracks[0].Height.Val),
-		Framerate: i.General.FrameRate.Val,
-		Bitrate:   float64(i.VideoTracks[0].Bitrate.Val),
+		Width:     i.VideoTracks[0].Width.Val,
+		Height:    i.VideoTracks[0].Height.Val,
+		Framerate: i.VideoTracks[0].FrameRate.Val,
+		Bitrate:   i.VideoTracks[0].Bitrate.Val,
 	}, nil
 }
 
@@ -89,6 +88,7 @@ func parseImage(path string) (*ImageFormat, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	ext := strings.ToLower(filepath.Ext(path))
 
@@ -123,8 +123,8 @@ func parseImage(path string) (*ImageFormat, error) {
 	}
 
 	return &ImageFormat{
-		Width:  int64(img.Bounds().Dx()),
-		Height: int64(img.Bounds().Dy()),
+		Width:  img.Bounds().Dx(),
+		Height: img.Bounds().Dy(),
 	}, nil
 }
 

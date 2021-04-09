@@ -6,10 +6,10 @@ import (
 
 // VideoFormat Video file format
 type VideoFormat struct {
-	Width     int64
-	Height    int64
+	Width     int
+	Height    int
 	Framerate float64
-	Bitrate   float64
+	Bitrate   int
 }
 
 // IsRecommendedHDFormat Check if its recommended HD video format or not
@@ -28,8 +28,8 @@ func (v VideoFormat) IsRecommendedHDFormat() error {
 
 // ImageFormat Image file format
 type ImageFormat struct {
-	Width  int64
-	Height int64
+	Width  int
+	Height int
 }
 
 // IsRecommendedHDFormat Check if its recommended HD video format or not
