@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -93,31 +94,35 @@ func parseImage(path string) (*ImageFormat, error) {
 	ext := strings.ToLower(filepath.Ext(path))
 
 	var img image.Image
-	var imgerr error
 	switch ext {
 	case ".jpg", ".jpeg":
-		img, imgerr = jpeg.Decode(f)
+		im, imgerr := jpeg.Decode(f)
 		if imgerr != nil {
-			return nil, err
+			return nil, imgerr
 		}
+		img = im
 
 	case ".png":
-		img, imgerr = png.Decode(f)
+		im, imgerr := png.Decode(f)
 		if imgerr != nil {
-			return nil, err
+			return nil, imgerr
 		}
+		img = im
 
 	case ".tiff":
-		img, imgerr = tiff.Decode(f)
+		im, imgerr := tiff.Decode(f)
 		if imgerr != nil {
-			return nil, err
+			return nil, imgerr
 		}
+		img = im
 
 	case ".bmp":
-		img, imgerr = bmp.Decode(f)
+		im, imgerr := bmp.Decode(f)
 		if imgerr != nil {
-			return nil, err
+			return nil, imgerr
 		}
+		img = im
+
 	default:
 		return nil, fmt.Errorf("Unsupported image format")
 	}
@@ -130,6 +135,11 @@ func parseImage(path string) (*ImageFormat, error) {
 
 func init() {
 	// logrus.SetLevel(logrus.DebugLevel)
+
+	_, err := exec.LookPath("mediainfo")
+	if err != nil {
+		logrus.Fatal("Failed to reach mediainfo executable.")
+	}
 }
 
 func main() {
@@ -177,6 +187,11 @@ func main() {
 						f, err := parseImage(path)
 						if err != nil {
 							logrus.Warnf("Failed to parse %s:%v\n", path, err)
+							return
+						}
+						// ???
+						if f == nil {
+							logrus.Warnf("File %s is unknown image format :%v\n", entry.Name(), err)
 							return
 						}
 						if err := f.IsRecommendedHDFormat(); err != nil {
